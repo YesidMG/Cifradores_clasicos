@@ -1,0 +1,283 @@
+================================================================================
+                    EJEMPLOS DETALLADOS PASO A PASO
+           Aplicación de Cifrado y Descifrado - Taller de Seguridad
+================================================================================
+
+CONTENIDO:
+1. Ejemplo 1: César Simple
+2. Ejemplo 2: Polibio Simple
+3. Ejemplo 3: Transposición Simple (Clave Par)
+4. Ejemplo 4: Transposición Simple (Clave Impar)
+5. Ejemplo 5: César + Polibio (2 Algoritmos)
+
+================================================================================
+EJEMPLO 1: CÉSAR SIMPLE
+================================================================================
+
+COMANDO:
+python main.py --cipher c --mode enc --key "ab" --normalize lax
+
+ENTRADA:
+hola
+
+PROCESO PASO A PASO:
+────────────────────
+
+Matriz de caracteres:
+[' ', '.', ':', ',', 'm', 'n', 'b', 'v', 'c']
+['x', 'z', 'ñ', 'l', 'k', 'j', 'h', 'g', 'f']
+['d', 's', 'a', 'p', 'o', 'i', 'u', 'y', 't']
+['r', 'e', 'w', 'q', '0', '9', '8', '7', '6']
+['5', '4', '3', '2', '1', 'Q', 'W', 'E', 'R']
+['T', 'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D']
+['F', 'G', 'H', 'J', 'K', 'L', 'Ñ', 'Z', 'X']
+['C', 'V', 'B', 'N', 'M', '¡', '!', '¿', '?']
+
+Paso 1: Normalizar mensaje
+   Mensaje original: "hola"
+   Normalización: lax
+   Mensaje normalizado: "hola"
+
+Paso 2: Encontrar posiciones en la matriz
+   h → posición (1, 6)  seria posicion 15 de izquierda a derecha
+   o → posición (2, 4)  seria posicion 22 de izquierda a derecha
+   l → posición (1, 3)  seria posicion 12 de izquierda a derecha
+   a → posición (2, 2)  seria posicion 20 de izquierda a derecha
+
+Paso 3: Aplicar clave "ab" (generada para el largo del mensaje "hola" = 4 chars)
+   Clave repetida: "abab"
+
+   a → posición (2, 2)  seria posicion 20 de izquierda a derecha
+   b → posición (0, 6)  seria posicion 06 de izquierda a derecha
+   a → posición (2, 2)  seria posicion 20 de izquierda a derecha
+   b → posición (0, 6)  seria posicion 06 de izquierda a derecha
+
+Paso 4: Desplazar cada carácter de izquierda a derecha teniendo en cuenta la posición
+    del caracter actual de la llave
+
+     15 + 20 = 35 mod 71 de izquierda a derecha → posicion (3, 8) → caracter '6'
+     22 + 06 = 28 mod 71 de izquierda a derecha → posicion (3, 1) → caracter 'e'
+     12 + 20 = 32 mod 71 de izquierda a derecha → posicion (3, 5) → caracter '9'
+     20 + 06 = 26 mod 71 de izquierda a derecha → posicion (2, 8) → caracter 't'
+
+SALIDA ESPERADA:
+6e9t
+
+(El resultado exacto depende de la implementación de los desplazamientos)
+
+VERIFICACIÓN (Desencriptación):
+python main.py --cipher c --mode dec --key "ab"
+Entrada: 6e9t
+Salida esperada: hola
+
+================================================================================
+EJEMPLO 2: POLIBIO SIMPLE
+================================================================================
+
+COMANDO:
+python main.py --cipher p --mode enc --normalize lax
+
+ENTRADA:
+abc
+
+PROCESO PASO A PASO:
+────────────────────
+
+Matriz de caracteres:
+[' ', '.', ':', ',', 'm', 'n', 'b', 'v', 'c']
+['x', 'z', 'ñ', 'l', 'k', 'j', 'h', 'g', 'f']
+['d', 's', 'a', 'p', 'o', 'i', 'u', 'y', 't']
+['r', 'e', 'w', 'q', '0', '9', '8', '7', '6']
+['5', '4', '3', '2', '1', 'Q', 'W', 'E', 'R']
+['T', 'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D']
+['F', 'G', 'H', 'J', 'K', 'L', 'Ñ', 'Z', 'X']
+['C', 'V', 'B', 'N', 'M', '¡', '!', '¿', '?']
+
+Paso 1: Normalizar mensaje
+   Mensaje original: "abc"
+   Normalización: lax
+   Mensaje normalizado: "abc"
+
+Paso 2: Encontrar posiciones de cada carácter
+   a → fila 2, columna 2
+   b → fila 0, columna 6
+   c → fila 0, columna 8
+
+Paso 3: Convertir a coordenadas (fila + columna)
+   a → "22" (fila 2, columna 2)
+   b → "06" (fila 0, columna 6)
+   c → "08" (fila 0, columna 8)
+
+Paso 4: Concatenar todos los dígitos
+   "22" + "06" + "08" = "220608"
+
+SALIDA ESPERADA:
+220608
+
+VERIFICACIÓN (Desencriptación):
+python main.py --cipher p --mode dec --normalize lax
+Entrada: 220608
+Salida esperada: abc
+
+NOTAS:
+- Polibio siempre produce números
+- Cada carácter se convierte en 2 dígitos (fila y columna)
+- No requiere clave
+
+================================================================================
+EJEMPLO 3: TRANSPOSICIÓN SIMPLE (CLAVE PAR)
+================================================================================
+
+COMANDO:
+python main.py --cipher t --mode enc --key "ab" --normalize lax
+
+ENTRADA:
+abcd
+
+PROCESO PASO A PASO:
+────────────────────
+
+Paso 1: Normalizar mensaje
+   Mensaje original: "abcd"
+   Normalización: lax
+   Mensaje normalizado: "abcd"
+
+Paso 2: Identificar largo de clave
+   Clave: "ab"
+   Largo de clave: 2 (PAR)
+
+Paso 3: Aplicar regla de transposición para clave PAR
+   Con clave PAR: caracteres en posición PAR van al final
+   
+   Posiciones (comienza en 1):
+   Posición 0: a (PAR) → va al final
+   Posición 1: b (IMPAR)   → va al inicio
+   Posición 2: c (PAR) → va al final
+   Posición 3: d (IMPAR)   → va al inicio
+
+Paso 4: Separar por paridad
+   Pares (0, 2):   a, c
+   Impares (1, 3): b, d
+
+Paso 5: Reorganizar (impares primero, pares al final)
+   Impares: "bd"
+   Pares: "ac"
+   Resultado: "bd" + "ac" = "bdac"
+
+SALIDA ESPERADA:
+bdac
+
+VERIFICACIÓN (Desencriptación):
+python main.py --cipher t --mode dec --key "ab"
+Entrada: bdac
+Salida esperada: abcd
+
+NOTAS SOBRE CLAVE PAR:
+- Los caracteres en posiciones PARES se mueven al final
+- Los caracteres en posiciones IMPARES van primero
+- El cero cuenta como PAR
+
+================================================================================
+EJEMPLO 4: TRANSPOSICIÓN SIMPLE (CLAVE IMPAR)
+================================================================================
+
+COMANDO:
+python main.py --cipher t --mode enc --key "abc" --normalize lax
+
+ENTRADA:
+abcd
+
+PROCESO PASO A PASO:
+────────────────────
+
+Paso 1: Normalizar mensaje
+   Mensaje original: "abcd"
+   Normalización: lax
+   Mensaje normalizado: "abcd"
+
+Paso 2: Identificar largo de clave
+   Clave: "abc"
+   Largo de clave: 3 (IMPAR)
+
+Paso 3: Aplicar regla de transposición para clave IMPAR
+   Con clave IMPAR: caracteres en posición IMPAR van al final
+   
+   Posiciones (comienza en 1):
+   Posición 0: a (PAR) → va al inicio
+   Posición 1: b (PAR)   → va al final
+   Posición 2: c (IMPAR) → va al inicio
+   Posición 3: d (PAR)   → va al final
+
+Paso 4: Separar por paridad
+   Pares (0, 2):   a, c
+   Impares (1, 3): b, d
+
+Paso 5: Reorganizar (pares primero, impares al final)
+   Pares: "ac"
+   Impares: "bd"
+   Resultado: "ac" + "bd" = "acbd"
+
+SALIDA ESPERADA:
+acbd
+
+VERIFICACIÓN (Desencriptación):
+python main.py --cipher t --mode dec --key "abc"
+Entrada: acbd
+Salida esperada: abcd
+✓ Resultado: abcd
+
+NOTAS SOBRE CLAVE IMPAR:
+- Los caracteres en posiciones IMPARES se mueven al final
+- Los caracteres en posiciones PARES van primero
+- DIFERENTE al comportamiento de clave PAR
+- El cero se considera PAR
+
+================================================================================
+EJEMPLO 5: CÉSAR + POLIBIO (2 ALGORITMOS)
+================================================================================
+
+COMANDO:
+python main.py --cipher c p --mode enc --key "clave" --normalize lax
+
+ENTRADA:
+hola
+
+PROCESO PASO A PASO:
+────────────────────
+
+PASO 1: APLICAR CÉSAR
+────────────────────
+Entrada: "hola"
+Clave: "clave"
+
+(Seguir proceso del Ejemplo 1)
+Salida César: i79r
+
+PASO 2: APLICAR POLIBIO
+───────────────────────
+Entrada: i79r
+Clave: No se usa
+
+Salida Polibio: 25373530
+
+SALIDA FINAL:
+25373530
+
+VERIFICACIÓN (Desencriptación - ORDEN INVERSO):
+────────────────────────────────────────────────
+python main.py --cipher p c --mode dec --key "clave"
+
+PASO 1: APLICAR POLIBIO INVERSO
+   Entrada: "25373530"
+   Salida: i79r
+
+PASO 2: APLICAR CÉSAR INVERSO
+   Entrada: "i79r"
+   Clave: "clave"
+   Salida: "hola"
+
+✓ Resultado final: hola
+
+IMPORTANTE:
+- El orden es INVERSO: En encriptación es c→p, en desencriptación es p→c
+- La salida de un algoritmo es entrada del siguiente

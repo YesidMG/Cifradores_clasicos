@@ -1,0 +1,463 @@
+# Aplicación de Cifrado y Descifrado Clásicos
+
+## Descripción
+
+Aplicación con interfaz CLI (Interfaz de Línea de Comandos) para cifrar y descifrar mensajes utilizando tres algoritmos clásicos de criptografía:
+
+- **César**: Cifrado por sustitución basado en desplazamiento de posiciones en una matriz
+- **Polibio**: Cifrado por sustitución usando coordenadas (fila, columna) de una matriz
+- **Transposición**: Cifrado por transposición de caracteres según la paridad
+
+### Características principales
+
+- Uso de **1, 2 o 3 algoritmos** en combinación
+- Los algoritmos se aplican en **secuencia**
+- **Reversibilidad garantizada**: encriptación + desencriptación = mensaje original
+- Dos modos de normalización: **Strict** y **Lax**
+- Entrada/salida flexible: **teclado, archivos, stdin/stdout**
+- **Orden inverso automático**: Si encriptas con A→B→C, desencriptas con C→B→A
+
+---
+
+## Requisitos e Instalación
+
+### Requisitos
+- **Python 3.7** o superior
+- **Sin dependencias externas** (solo librerías estándar)
+
+### Instalación
+
+```bash
+# Clonar o descargar el repositorio
+git clone <repositorio>
+cd "taller 1 50"
+```
+
+### Estructura de carpetas
+```
+taller 1 50/
+├── main.py                              # Interfaz CLI principal
+├── README.md                            # Este archivo
+├── EJEMPLOS_DETALLADOS.txt             # Ejemplos paso a paso
+├── Algorithms/
+│   ├── __init__.py
+│   ├── encryptionAlgorithms.py         # Cifrado (César, Polibio, Transposición)
+│   └── decryptionAlgorithms.py         # Descifrado (inversos)
+├── auxiliaryFunctions/
+│   ├── __init__.py
+│   ├── auxiliaryFunctions.py           # Funciones auxiliares
+│   └── standardization.py              # Normalización y matriz de 8×9
+└── Tests/
+    ├── test_algorithms.py              # 21 pruebas unitarias
+    ├── test_interactive.py             # Pruebas interactivas con menú
+    └── run_examples.bat                # Script de ejemplos (Windows)
+```
+
+---
+
+## Uso
+
+### Sintaxis básica
+
+```bash
+python main.py --cipher <algoritmos> --mode <modo> [opciones]
+```
+
+### Flags disponibles
+
+| Flag | Descripción | Requerido | Valores | Por defecto |
+|------|-------------|-----------|---------|------------|
+| `--cipher` | Algoritmos a usar (mino uno maximo tres, sin repetir) | Sí | `c`, `p`, `t`, `cesar`, `polibius`, `transposition` | - |
+| `--mode` | Modo de operación | Sí | `enc` (encriptar), `dec` (desencriptar) | - |
+| `--key` | Clave de cifrado | Para C y T | Cualquier texto | - |
+| `--in` | Entrada de datos(por consola o leer de un .txt) | No | `stdin` o ruta de archivo | `stdin` |
+| `--out` | Salida de datos (por consola o guardar en .txt) | No | `stdout` o ruta de archivo | `stdout` |
+| `--normalize` | Normalización de texto | No | `strict` (s), `lax` (l) | `lax` |
+
+### Ejemplos de uso
+
+#### 1️⃣ Encriptar desde teclado (interactivo)
+```bash
+python main.py --cipher c --mode enc --key "miLlave" --normalize lax
+```
+Ingresa el mensaje cuando se solicite y verás el resultado en pantalla.
+
+#### 2️⃣ Encriptar desde archivo a archivo
+```bash
+python main.py --cipher c p t --mode enc --key "miLlave" --in mensaje.txt --out cifrado.txt --normalize lax
+```
+
+#### 3️⃣ Desencriptar (orden inverso)
+```bash
+python main.py --cipher t p c --mode dec --key "miLlave" --in cifrado.txt --out descifrado.txt
+```
+
+#### 4️⃣ Usar un solo algoritmo
+```bash
+python main.py --cipher c --mode enc --key "clave"
+```
+
+#### 5️⃣ Usar dos algoritmos
+```bash
+python main.py --cipher c p --mode enc --key "clave" --in entrada.txt --out salida.txt
+```
+
+#### 6️⃣ Polibio sin clave
+```bash
+python main.py --cipher p --mode enc --normalize lax
+```
+
+#### 7️⃣ Ver ayuda
+```bash
+python main.py --help
+```
+
+---
+
+## 🔐 Algoritmos de Cifrado
+
+### 1. César (Sustitución)
+
+**Cómo funciona:**
+Sustituye los caracteres del mensaje teniendo en cuenta su posicion en la matriz alfabeto (de 0 a 71) sumando la posicion del caracter del mensaje en la matriz con la posicion en la matriz del caracter correspondiente de la llave, realizando modulo con el numero de elementos de la matriz.
+
+**Características:**
+- Requiere clave
+- Reversible
+- La clave se repite/ajusta al largo del mensaje
+
+**Ejemplo:**
+```bash
+python main.py --cipher c --mode enc --key "clave"
+# Entrada: hola
+# Salida: i79r (ejemplo aproximado)
+```
+
+**Proceso paso a paso:**
+```
+Mensaje:  h      o      l      a
+Posición: 15     22     12     20
+Clave:    a      b      a      b
+Pos.Cla:  20     6      20     6
+Suma:     35     28     32     26
+Resultado: 6     e      9      t
+```
+
+---
+
+### 2. Polibio (Coordenadas)
+
+**Cómo funciona:**
+- Convierte cada carácter a sus coordenadas (fila, columna)
+- Concatena los dígitos resultantes
+
+**Características:**
+- NO requiere clave
+- Produce números (pares de dígitos)
+- Reversible
+
+**Ejemplo:**
+```bash
+python main.py --cipher p --mode enc --normalize lax
+# Entrada: abc
+# Salida: 220608
+```
+
+**Proceso:**
+```
+a → fila 2, columna 2 → "22"
+b → fila 0, columna 6 → "06"
+c → fila 0, columna 8 → "08"
+Resultado: "220608"
+```
+
+---
+
+### 3. Transposición (Reorganización)
+
+**Cómo funciona:**
+- Separa caracteres por **paridad de índice** (par/impar)
+- El orden depende del **largo de la clave**
+
+**Reglas:**
+- **Clave PAR**: Caracteres pares (posiciones 0,2,4...) van al **final**
+- **Clave IMPAR**: Caracteres impares (posiciones 1,3,5...) van al **final**
+
+**Características:**
+- Requiere clave
+- Solo reorganiza, no sustituye
+- Reversible
+
+**Ejemplo (Clave PAR):**
+```bash
+python main.py --cipher t --mode enc --key "ab"  # largo 2
+# Entrada: abcd
+# Salida: bdac
+```
+
+**Proceso:**
+```
+Índice:  0  1  2  3
+Char:    a  b  c  d
+Paridad: P  I  P  I
+
+Pares (0,2):   a, c
+Impares (1,3): b, d
+
+Como clave es PAR (largo 2):
+  Impares primero: bd
+  Pares después:   ac
+  Resultado: bdac
+```
+
+**Ejemplo (Clave IMPAR):**
+```bash
+python main.py --cipher t --mode enc --key "abc"  # largo 3
+# Entrada: abcd
+# Salida: acbd
+```
+
+---
+
+## Normalización de Texto
+
+### Strict (`strict` o `s`)
+Elimina todo menos letras minúsculas.y caracteres no alfabeticos, adicionalmente sustituye vocales con tildes con su equivalente sin tilde.
+
+```
+Entrada:  ¡Hola, Mundo 123!
+Salida:   holamundo
+```
+
+### Lax (`lax` o `l`) - Por defecto
+Mantiene caracteres válidos de la matriz (números, símbolos, espacios).
+
+```
+Entrada:  ¡Hola, Mundo 123!
+Salida:   ¡Hola, Mundo 123!
+```
+
+---
+
+## 🔤 Matriz de Caracteres (8×9)
+
+```
+Fila 0: [ ]  [.]  [:]  [,]  [m]  [n]  [b]  [v]  [c]
+Fila 1: [x]  [z]  [ñ]  [l]  [k]  [j]  [h]  [g]  [f]
+Fila 2: [d]  [s]  [a]  [p]  [o]  [i]  [u]  [y]  [t]
+Fila 3: [r]  [e]  [w]  [q]  [0]  [9]  [8]  [7]  [6]
+Fila 4: [5]  [4]  [3]  [2]  [1]  [Q]  [W]  [E]  [R]
+Fila 5: [T]  [Y]  [U]  [I]  [O]  [P]  [A]  [S]  [D]
+Fila 6: [F]  [G]  [H]  [J]  [K]  [L]  [Ñ]  [Z]  [X]
+Fila 7: [C]  [V]  [B]  [N]  [M]  [¡]  [!]  [¿]  [?]
+```
+
+**Total:** 72 caracteres (0-71)
+
+---
+
+## 🔄 Combinación de Algoritmos
+
+### Encriptación en secuencia
+```bash
+# Comando: --cipher c p t
+# Proceso: César → Polibio → Transposición
+```
+
+### Desencriptación en orden INVERSO 
+```bash
+# Para desencriptar lo anterior, usa:
+# Comando: --cipher t p c
+# Proceso: Transposición⁻¹ → Polibio⁻¹ → César⁻¹
+```
+
+**Importante:** El orden inverso es esencial para recuperar el mensaje original.
+
+---
+
+## Gestión de Archivos
+
+### Crear archivo de entrada
+
+**Windows:**
+```batch
+echo mensaje aqui > entrada.txt
+```
+
+**Linux/Mac:**
+```bash
+echo "mensaje aqui" > entrada.txt
+```
+
+### Ver contenido
+
+**Windows:**
+```batch
+type archivo.txt
+```
+
+**Linux/Mac:**
+```bash
+cat archivo.txt
+```
+
+### Flujo completo de cifrado
+
+```bash
+# 1. Crear archivo
+echo "información secreta" > original.txt
+
+# 2. Encriptar con 3 algoritmos
+python main.py --cipher c p t --mode enc --key "clave_fuerte" \
+  --in original.txt --out cifrado.txt --normalize lax
+
+# 3. Ver cifrado
+type cifrado.txt
+
+# 4. Desencriptar (ORDEN INVERSO)
+python main.py --cipher t p c --mode dec --key "clave_fuerte" \
+  --in cifrado.txt --out recuperado.txt
+
+# 5. Verificar
+type recuperado.txt
+```
+
+---
+
+## Pruebas
+
+### Ejecutar pruebas unitarias
+```bash
+python -m unittest Tests/test_algorithms.py -v
+```
+
+**Cobertura:** 21 pruebas (César, Polibio, Transposición, Combinadas, Edge Cases)
+
+### Ejecutar pruebas interactivas
+```bash
+python Tests/test_interactive.py
+```
+
+**Opciones:**
+- 1. Pruebas César
+- 2. Pruebas Polibio
+- 3. Pruebas Transposición
+- 4. Pruebas Combinadas
+- 5. Casos Extremos
+- 6. Ejecutar todas
+- 0. Salir
+
+### Script rápido (Windows)
+```batch
+Tests\run_examples.bat
+```
+
+Menú interactivo con 9 opciones de demostración.
+
+---
+
+## Manejo de Errores
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `❌ Error: 'x' no es un algoritmo válido` | Algoritmo desconocido | Usa `c`, `p`, `t` o nombres completos |
+| `❌ Debes pasar entre 1 y 3 algoritmos` | Cantidad incorrecta | Especifica 1-3 algoritmos |
+| `❌ No puede haber algoritmos repetidos` | Algoritmo duplicado | No repitas: `--cipher c p` ✅ no `--cipher c c` ❌ |
+| `❌ César requiere --key` | Falta clave | Agrega `--key "clave"` |
+| `❌ Transposición requiere --key` | Falta clave | Agrega `--key "clave"` |
+| `❌ No se encontró 'archivo.txt'` | Archivo inexistente | Verifica ruta y existencia |
+
+---
+
+## Ejemplos de Flujo de Trabajo
+
+### Ejemplo 1: Encriptación simple
+```bash
+python main.py --cipher c --mode enc --key "seguridad" --normalize lax
+# Escribe: hola mundo
+# Resultado: (texto encriptado)
+```
+
+### Ejemplo 2: Triple cifrado con archivos
+```bash
+# Crear entrada
+echo "información confidencial" > secreto.txt
+
+# Encriptar: César → Polibio → Transposición
+python main.py --cipher c p t --mode enc --key "clave_fuerte" \
+  --in secreto.txt --out triple_cifrado.txt --normalize lax
+
+# Desencriptar: Transposición⁻¹ → Polibio⁻¹ → César⁻¹
+python main.py --cipher t p c --mode dec --key "clave_fuerte" \
+  --in triple_cifrado.txt --out recuperado.txt
+
+# Verificar
+type recuperado.txt
+```
+
+### Ejemplo 3: Procesamiento por lotes (Windows)
+```batch
+for %%f in (*.txt) do (
+    python main.py --cipher c --mode enc --key "clave" --in %%f --out enc_%%f
+)
+```
+
+---
+
+## Notas Importantes
+
+1. **Orden inverso en desencriptación:**
+   - Encriptación: `--cipher c p t`
+   - Desencriptación: `--cipher t p c` 
+
+2. **Clave consistente:**
+   - Usa la **misma clave** para encriptar y desencriptar
+   - Las claves son **case-sensitive**
+
+3. **Normalización consistente:**
+   - Usa el **mismo modo** (`strict` o `lax`) en ambos procesos
+
+4. **Caracteres especiales:**
+   - **Strict:** Se pierden caracteres fuera del alfabeto
+   - **Lax:** Se conservan si están en la matriz
+
+5. **Longitud de clave:**
+   - **Corta:** Se repite automáticamente
+   - **Larga:** Se ajusta al largo del mensaje
+
+---
+
+## Troubleshooting
+
+| Problema | Causa | Solución |
+|----------|-------|----------|
+| `ModuleNotFoundError` | Estructura de carpetas incorrecta | Verifica que existan `__init__.py` en cada carpeta |
+| `ImportError: circular` | Importaciones circulares | Revisa que `auxiliaryFunctions.py` no importe de `Algorithms` |
+| `Archivo no encontrado` | Ruta incorrecta | Usa rutas relativas o completas correctas |
+| `Caracteres incorrectos` | Normalización diferente | Usa el mismo modo en cifrado y descifrado |
+| `Desencriptación incorrecta` | Orden de algoritmos invertido | Usa orden inverso: si cifras con `c p t`, descifra con `t p c` |
+
+---
+
+## Documentación Adicional
+
+- **EJEMPLOS_DETALLADOS.txt**: Paso a paso de cada algoritmo con ejemplos numéricos
+- **Tests/test_algorithms.py**: 21 pruebas unitarias
+- **Tests/test_interactive.py**: Suite interactiva de pruebas
+- **Tests/run_examples.bat**: Script de demostración rápida
+
+---
+
+## Características Técnicas
+
+| Aspecto | Valor |
+|--------|-------|
+| **Matriz** | 8 filas × 9 columnas = 72 caracteres |
+| **Rango de posiciones** | 0-71 |
+| **Algoritmos** | 3 (César, Polibio, Transposición) |
+| **Combinaciones máximas** | 6 (1→2→3, 1→3→2, 2→1→3, 2→3→1, 3→1→2, 3→2→1) |
+| **Pruebas unitarias** | 21 |
+| **Reversibilidad** | 100% garantizada |
+| **Dependencias** | Ninguna (solo Python std) |
+
+---
