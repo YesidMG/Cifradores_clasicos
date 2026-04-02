@@ -29,13 +29,13 @@ Aplicación con interfaz CLI (Interfaz de Línea de Comandos) para cifrar y desc
 
 ```bash
 # Clonar o descargar el repositorio
-git clone <repositorio>
-cd "taller 1 50"
+git clone https://github.com/YesidMG/Cifradores_clasicos.git
+cd "Cifradores_clasicos"
 ```
 
 ### Estructura de carpetas
 ```
-taller 1 50/
+Cifradores_clasicos/
 ├── main.py                              # Interfaz CLI principal
 ├── README.md                            # Este archivo
 ├── EJEMPLOS_DETALLADOS.txt             # Ejemplos paso a paso
