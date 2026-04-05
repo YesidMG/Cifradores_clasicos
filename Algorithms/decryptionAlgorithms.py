@@ -50,29 +50,33 @@ def polibio_decrypt(message, mode='strict'):
 # ---------------- Método de Transposición (Desencriptación) ----------------
 
 def transposicion_decrypt(message, key):
-    """Desencripta el mensaje usando el método de transposición.
-    Si la llave original tiene largo par, los últimos caracteres eran pares.
-    Si la llave original tiene largo impar, los últimos caracteres eran impares."""
-
-    mitad = len(message) // 2
+    n = len(message)
     
-    # Determinar qué mitad contiene pares y qué mitad contiene impares
+    # Cantidad real de pares e impares
+    pares_len = (n + 1) // 2   # incluye el índice 0
+    impares_len = n // 2
+
+    # Separar correctamente según la llave
     if len(key) % 2 == 0:
-        # Llave par: primera mitad es impares, segunda mitad es pares
-        impares = message[:mitad]
-        pares = message[mitad:]
+        # llave par → pares al final
+        impares = message[:impares_len]
+        pares = message[impares_len:]
     else:
-        # Llave impar: primera mitad es pares, segunda mitad es impares
-        pares = message[:mitad]
-        impares = message[mitad:]
+        # llave impar → impares al final
+        pares = message[:pares_len]
+        impares = message[pares_len:]
 
-    resultado = ""
-    for i in range(len(impares)):
-        resultado += pares[i] if i < len(pares) else ""
-        resultado += impares[i]
+    # Reconstrucción
+    resultado = []
+    par_idx = 0
+    impar_idx = 0
 
-    # Si hay un carácter sobrante en pares, agregarlo
-    if len(pares) > len(impares):
-        resultado += pares[-1]
+    for i in range(n):
+        if i % 2 == 0:
+            resultado.append(pares[par_idx])
+            par_idx += 1
+        else:
+            resultado.append(impares[impar_idx])
+            impar_idx += 1
 
-    return resultado
+    return "".join(resultado)
